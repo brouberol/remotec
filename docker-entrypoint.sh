@@ -26,8 +26,7 @@ if [[ "$1" = "api" || -z $1 ]];then
 
 elif [ "$1" = "celery_worker" ];then
     export CELERY_WORKER_MAX_TASKS=${CELERY_WORKER_MAX_TASKS:=1000}
-    export CELERY_QUEUES=${CELERY_QUEUES:=celery}
-    export C_FORCE_ROOT="true"
+    export CELERY_QUEUES=${CELERY_QUEUES:=remotec}
 
     echo "Starting celery worker"
     exec celery worker \
