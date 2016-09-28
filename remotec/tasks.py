@@ -45,6 +45,7 @@ def make_app(username, instances):
                 username=slugify(username),
                 lb=os.environ['LOAD_BALANCER']),
             'TWITTER_HANDLE': username,
+            'USER_LOGS_TOKEN': os.environ['LOGS_TOKEN'],
         },
         container=MarathonContainer(
             type='DOCKER',
