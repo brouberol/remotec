@@ -23,7 +23,7 @@ def get_status(app):
         return 'suspended'
     elif app['tasksRunning'] == app['instances']:
         return 'running'
-    elif app['tasksStaged'] <= app['instances']:
+    elif app['tasksStaged'] > 0:
         return 'deploying'
     else:
         return 'unknown'
