@@ -20,7 +20,7 @@ LOG = get_task_logger(__name__)
 
 def find_app_id(username):
     url = 'http://%s/apps' % (os.environ['API_URL'].rstrip('/'))
-    apps = requests.get(url).json()
+    apps = requests.get(url).json()['apps']
     for app in apps:
         if app['username'] == username:
             return app['id']
