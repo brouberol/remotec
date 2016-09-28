@@ -35,5 +35,9 @@ def list_apps():
     return make_response(jsonify({'apps': apps}), 200)
 
 
+@app.route('/ping', methods=['GET'])
+def healthcheck():
+    return "pong\n"
+
 if __name__ == '__main__':
     app.run(host='127.0.0.1', port=6666, debug=True)
