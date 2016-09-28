@@ -7,6 +7,8 @@ import os
 from flask import Flask, make_response, jsonify
 from marathon.client import MarathonClient
 
+WHITELIST = ['id', 'instances']
+
 app = Flask(__name__)
 app.marathon = MarathonClient(
     servers=[os.environ['MARATHON_URL']],
@@ -31,8 +33,10 @@ def list_apps():
     for marathon_app in app.marathon.list_apps():
         if marathon_app.id.startswith('/summit'):
             marathon_app = json.loads(marathon_app.to_json())
-            marathon_app['status'] = get_status(marathon_app)
-            apps.append(marathon_app)
+            app_doc = {field: marathon_app[field] for field in WHITELIST}
+            app_doc['status'] = get_status(marathon_app)
+            app_doc['url'] = 'http://%s' % (marathon_app['labels']['HAPROXY_0_VHOST'])
+            apps.append(app_doc)
     return make_response(jsonify({'apps': apps}), 200)
 
 
