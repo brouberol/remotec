@@ -13,7 +13,7 @@ from .app import cel
 
 
 def make_app_id(username):
-    return "/summit/%s" % (username)
+    return "/summit/users/%s" % (username)
 
 
 def make_app(username, instances):
