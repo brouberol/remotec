@@ -1,2 +1,3 @@
 # remotec
-OVH Summit Demo for DockerAAS
+
+Remote control your Martahon from Twitter.
