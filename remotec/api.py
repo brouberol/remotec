@@ -5,11 +5,13 @@ import json
 import os
 
 from flask import Flask, make_response, jsonify
+from flask_cors import CORS
 from marathon.client import MarathonClient
 
 WHITELIST = ['id', 'instances']
 
 app = Flask(__name__)
+CORS(app)
 app.marathon = MarathonClient(
     servers=[os.environ['MARATHON_URL']],
     username=os.environ['MARATHON_USER'],
