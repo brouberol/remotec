@@ -11,7 +11,6 @@ RUN pip install -r requirements.txt
 
 # Configure entrypoint
 ENTRYPOINT ["./docker-entrypoint.sh"]
-CMD ["api"]
 
 # Add the code in the end, to reduce the build time
 COPY . /usr/src/app

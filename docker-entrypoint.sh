@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-if [[ "$1" = "api" || -z $1 ]];then
+if [[ "${ENTRYPOINT_CMD}" = "api" ]];then
     export G_WORKERS=${G_WORKERS:=5}
     export G_THREADS=${G_THREADS:=1}
     export G_MAX_REQUESTS=${G_MAX_REQUESTS:=1000}
@@ -24,7 +24,7 @@ if [[ "$1" = "api" || -z $1 ]];then
         --max-requests-jitter $G_MAX_REQUESTS_JITTER \
         wsgi:app
 
-elif [ "$1" = "celery_worker" ];then
+elif [ "${ENTRYPOINT_CMD}" = "celery_worker" ];then
     export CELERY_WORKER_MAX_TASKS=${CELERY_WORKER_MAX_TASKS:=1000}
     export CELERY_QUEUES=${CELERY_QUEUES:=remotec}
 
@@ -34,7 +34,7 @@ elif [ "$1" = "celery_worker" ];then
         --maxtasksperchild=$CELERY_WORKER_MAX_TASKS \
         --loglevel=INFO
 
-elif [ "$1" = "consumer" ];then
+elif [ "${ENTRYPOINT_CMD}" = "consumer" ];then
     echo "Starting twitter consumer"
     exec python main.py
 
