@@ -1,1 +1,1 @@
-from remotec import app
+from remotec.api import app
