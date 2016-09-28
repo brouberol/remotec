@@ -32,6 +32,8 @@ def make_app_id(username):
 
 
 def make_app(username, instances):
+    if instances > 5:
+        instances = 5
     app = MarathonApp(
         id=make_app_id(username),
         instances=instances,
