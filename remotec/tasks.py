@@ -3,6 +3,7 @@ Definition of the celery tasks
 """
 import json
 import os
+import requests
 
 from slugify import slugify
 from marathon.models import MarathonApp, MarathonHealthCheck
@@ -10,7 +11,20 @@ from marathon.models.container import (
     MarathonContainer,
     MarathonDockerContainer,
     MarathonContainerPortMapping)
+from celery.utils.log import get_task_logger
 from .app import cel
+
+
+LOG = get_task_logger(__name__)
+
+
+def find_app_id(username):
+    url = '%s/apps' % (os.environ['API_URL'].rstrip('/'))
+    apps = requests.get(url).json()
+    for app in apps:
+        if app['username'] == username:
+            return app['id']
+    LOG.warning('App with username %s not found', username)
 
 
 def make_app_id(username):
@@ -65,27 +79,31 @@ def start_app(self, username, instances):
 
 @cel.task(bind=True)
 def scale_app(self, username, instances):
-    app_id = make_app_id(username)
-    resp = cel.marathon.scale_app(app_id, instances=instances)
-    return resp
+    app_id = find_app_id(username)
+    if app_id:
+        resp = cel.marathon.scale_app(app_id, instances=instances)
+        return resp
 
 
 @cel.task(bind=True)
 def restart_app(self, username, **kwargs):
-    app_id = make_app_id(username)
-    resp = cel.marathon.restart_app(app_id, force=True)
-    return resp
+    app_id = find_app_id(username)
+    if app_id:
+        resp = cel.marathon.restart_app(app_id, force=True)
+        return resp
 
 
 @cel.task(bind=True)
 def delete_app(self, username, **kwargs):
-    app_id = make_app_id(username)
-    resp = cel.marathon.delete_app(app_id, force=True)
-    return resp
+    app_id = find_app_id(username)
+    if app_id:
+        resp = cel.marathon.delete_app(app_id, force=True)
+        return resp
 
 
 @cel.task(bind=True)
 def stop_app(self, username):
-    app_id = make_app_id(username)
-    resp = cel.marathon.scale_app(app_id, instances=0)
-    return resp
+    app_id = find_app_id(username)
+    if app_id:
+        resp = cel.marathon.scale_app(app_id, instances=0)
+        return resp
