@@ -29,9 +29,10 @@ def get_status(app):
 def list_apps():
     apps = []
     for marathon_app in app.marathon.list_apps():
-        marathon_app = json.loads(marathon_app.to_json())
-        marathon_app['status'] = get_status(marathon_app)
-        apps.append(marathon_app)
+        if marathon_app.id.startswith('/summit'):
+            marathon_app = json.loads(marathon_app.to_json())
+            marathon_app['status'] = get_status(marathon_app)
+            apps.append(marathon_app)
     return make_response(jsonify({'apps': apps}), 200)
 
 
