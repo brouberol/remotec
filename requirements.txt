@@ -20,3 +20,4 @@ MarkupSafe==0.23
 python-engineio==1.0.3
 gunicorn==19.6.0
 Flask-Cors==3.0.2
+python-slugify==1.2.1

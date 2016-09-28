@@ -4,6 +4,7 @@ Definition of the celery tasks
 import json
 import os
 
+from slugify import slugify
 from marathon.models import MarathonApp, MarathonHealthCheck
 from marathon.models.container import (
     MarathonContainer,
@@ -13,7 +14,7 @@ from .app import cel
 
 
 def make_app_id(username):
-    return "/summit/users/%s" % (username)
+    return "/summit/users/%s" % (slugify(username))
 
 
 def make_app(username, instances):
@@ -26,7 +27,8 @@ def make_app(username, instances):
             'HAPROXY_0_MODE': 'http',
             'HAPROXY_0_VHOST': '{username}.summit.{lb}'.format(
                 username=username,
-                lb=os.environ['LOAD_BALANCER'])
+                lb=os.environ['LOAD_BALANCER']),
+            'TWITTER_HANDLE': username,
         },
         container=MarathonContainer(
             type='DOCKER',
