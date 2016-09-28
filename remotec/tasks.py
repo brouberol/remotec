@@ -40,7 +40,7 @@ def make_app(username, instances):
         labels={
             'HAPROXY_0_MODE': 'http',
             'HAPROXY_0_VHOST': '{username}.summit.{lb}'.format(
-                username=username,
+                username=slugify(username),
                 lb=os.environ['LOAD_BALANCER']),
             'TWITTER_HANDLE': username,
         },
