@@ -184,7 +184,7 @@ def deploy_broker():
                 'portMappings': [
                     {
                         'containerPort': 6379,
-                        'servicePort': 0,
+                        'servicePort': os.environ['REDIS_PORT'],
                         'protocol': 'tcp',
                     }
                 ],
@@ -208,6 +208,7 @@ def deploy_broker():
         ],
         'labels': {
             'HAPROXY_0_MODE': 'tcp',
+            'HAPROXY_0_BACKEND_NETWORK_ALLOWED_ACL': os.environ['REDIS_ACL'],
             'USER_LOGS_TOKEN': os.environ['LOGS_TOKEN'],
         },
         'maxLaunchDelaySeconds': 600,
