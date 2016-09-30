@@ -117,7 +117,6 @@ def deploy_api():
         },
         'maxLaunchDelaySeconds': 600,
     }
-    pprint.pprint(data)
     deploy(data)
 
 
@@ -162,6 +161,58 @@ def deploy_consumer():
     deploy(data)
 
 
+def deploy_broker():
+    data = {
+        'id': '/summit/broker',
+        'instances': 3,
+        'constraints': [],
+        'cmd': 'redis-server --appendonly yes --protected no --requirepass %s' % (os.environ['REDIS_PASSWORD']),
+        'container': {
+            'type': 'DOCKER',
+            'volumes': [
+                {
+                    'containerPath': '/data',
+                    'hostPath': '/summit/redis/data',
+                    'mode': 'RW'
+                }
+            ],
+            'docker': {
+                'forcePullImage': True,
+                'image': 'redis',
+                'network': 'BRIDGE',
+                'portMappings': [
+                    {
+                        'containerPort': 6379,
+                        'servicePort': 0,
+                    }
+                ],
+                'priviledged': False
+            }
+        },
+        'cpus': 0.1,
+        'mem': 128,
+        'disk': 0,
+        'env': {
+        },
+        'healthChecks': [
+            {
+                'gracePeriodSeconds': 300,
+                'intervalSeconds': 10,
+                'maxConsecutiveFailures': 3,
+                'portIndex': 0,
+                'protocol': 'TCP',
+                'timeoutSeconds': 20,
+            },
+        ],
+        'labels': {
+            'HAPROXY_0_MODE': 'tcp',
+            'USER_LOGS_TOKEN': os.environ['LOGS_TOKEN'],
+        },
+        'maxLaunchDelaySeconds': 600,
+    }
+    deploy(data)
+
+
 def main():
     app = sys.argv[1]
     if app == 'worker':
@@ -170,6 +221,8 @@ def main():
         deploy_consumer()
     elif app == 'api':
         deploy_api()
+    elif app == 'broker':
+        deploy_broker()
     else:
         print("Unhandled app")
 
