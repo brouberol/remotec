@@ -79,7 +79,7 @@ def deploy_api():
                 'network': 'BRIDGE',
                 'portMappings': [
                     {
-                        'containerPort': 5000,
+                        'containerPort': os.environ['API_PORT'],
                         'servicePort': 0,
                     }
                 ],
