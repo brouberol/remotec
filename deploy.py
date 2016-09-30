@@ -165,9 +165,9 @@ def deploy_consumer():
 def deploy_broker():
     data = {
         'id': '/summit/broker',
-        'instances': 3,
+        'instances': 1,
         'constraints': [],
-        'cmd': 'redis-server --appendonly yes --protected no --requirepass %s' % (os.environ['REDIS_PASSWORD']),
+        'cmd': 'redis-server --appendonly yes --requirepass %s' % (os.environ['REDIS_PASSWORD']),
         'container': {
             'type': 'DOCKER',
             'volumes': [
@@ -184,7 +184,7 @@ def deploy_broker():
                 'portMappings': [
                     {
                         'containerPort': 6379,
-                        'servicePort': os.environ['REDIS_PORT'],
+                        'servicePort': int(os.environ['REDIS_PORT']),
                         'protocol': 'tcp',
                     }
                 ],
@@ -198,6 +198,7 @@ def deploy_broker():
         },
         'healthChecks': [
             {
+                'ignoreHttp1xx': False,
                 'gracePeriodSeconds': 300,
                 'intervalSeconds': 10,
                 'maxConsecutiveFailures': 3,
