@@ -81,6 +81,7 @@ def deploy_api():
                     {
                         'containerPort': os.environ['API_PORT'],
                         'servicePort': 0,
+                        'protocol': 'http',
                     }
                 ],
                 'priviledged': False
@@ -184,6 +185,7 @@ def deploy_broker():
                     {
                         'containerPort': 6379,
                         'servicePort': 0,
+                        'protocol': 'tcp',
                     }
                 ],
                 'priviledged': False
