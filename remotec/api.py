@@ -21,12 +21,10 @@ app.marathon = MarathonClient(
 def get_status(app):
     if app['instances'] == 0:
         return 'suspended'
-    elif app['tasksRunning'] == app['instances']:
-        return 'running'
-    elif app['tasksStaged'] > 0:
+    elif app['tasksRunning'] != app['instances']:
         return 'deploying'
     else:
-        return 'unknown'
+        return 'running'
 
 
 @app.route('/apps', methods=['GET'])

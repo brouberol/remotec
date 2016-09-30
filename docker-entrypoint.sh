@@ -27,11 +27,20 @@ if [[ "${ENTRYPOINT_CMD}" = "api" ]];then
 elif [ "${ENTRYPOINT_CMD}" = "celery_worker" ];then
     export CELERY_WORKER_MAX_TASKS=${CELERY_WORKER_MAX_TASKS:=1000}
     export CELERY_QUEUES=${CELERY_QUEUES:=remotec}
+    export C_FORCE_ROOT="true"
 
     echo "Starting celery worker"
     exec celery worker \
         -A remotec.app \
         --maxtasksperchild=$CELERY_WORKER_MAX_TASKS \
+        --loglevel=INFO
+
+elif [ "${ENTRYPOINT_CMD}" = "celery_beat" ];then
+    echo "Starting celery beat"
+    export C_FORCE_ROOT="true"
+
+    exec celery beat \
+        -A remotec.app \
         --loglevel=INFO
 
 elif [ "${ENTRYPOINT_CMD}" = "consumer" ];then

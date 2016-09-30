@@ -3,6 +3,7 @@ Definition of the celery worker.
 """
 
 import os
+from datetime import timedelta
 
 from celery import Celery
 from kombu import Exchange, Queue
@@ -33,3 +34,11 @@ cel.marathon = MarathonClient(
     servers=[os.environ['MARATHON_URL']],
     username=os.environ['MARATHON_USER'],
     password=os.environ['MARATHON_PASSWORD'])
+
+cel.conf.CELERYBEAT_SCHEDULE.update({
+    'drop-apps': {
+        'task': 'remotec.tasks.autoremove_app',
+        'schedule': timedelta(minutes=1),
+        'args': ()
+    },
+})

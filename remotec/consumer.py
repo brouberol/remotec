@@ -10,7 +10,7 @@ import logging
 import re
 import time
 
-from .tasks import start_app, stop_app, scale_app, delete_app, restart_app
+from remotec.tasks import start_app, stop_app, scale_app, delete_app, restart_app
 
 logging.basicConfig()
 LOG = logging.getLogger('remotec.consumer')
@@ -22,14 +22,13 @@ STOP = r'(?P<action>stop)'
 START = r'(?P<action>start)'
 RESTART = r'(?P<action>restart)'
 DELETE = r'(?P<action>delete)'
-APP = r'(?P<app>[-/\w]+)'
 INSTANCES = r'(?P<instances>\d+)'
 ACTION_PATTERNS = (
-    r'{action}\s+{app}\s+{instances}'.format(action=SCALE, app=APP, instances=INSTANCES),
-    r'{action}\s+{app}(\s+{instances})?'.format(action=START, app=APP, instances=INSTANCES),
-    r'{action}\s+{app}'.format(action=RESTART, app=APP),
-    r'{action}\s+{app}'.format(action=STOP, app=APP),
-    r'{action}\s+{app}'.format(action=DELETE, app=APP),
+    r'{action}\s+{instances}'.format(action=SCALE, instances=INSTANCES),
+    r'{action}\s+({instances})?'.format(action=START, instances=INSTANCES),
+    r'{action}'.format(action=RESTART),
+    r'{action}'.format(action=STOP),
+    r'{action}'.format(action=DELETE),
 )
 ACTIONS = {
     'start': start_app,
@@ -38,6 +37,8 @@ ACTIONS = {
     'restart': restart_app,
     'stop': stop_app,
 }
+STREAM_HASHTAG = os.environ['STREAM_HASHTAG']
+MAX_INSTANCES = 10
 
 
 def parse_dockeraas_tweet(text):
@@ -49,6 +50,8 @@ def parse_dockeraas_tweet(text):
             command['action'] = command['action'].lower()
             if command.get('instances'):
                 command['instances'] = int(command['instances'])
+                if command['instances'] > MAX_INSTANCES:
+                    command['instances'] = MAX_INSTANCES
             elif command['action'] == 'start':
                 command['instances'] = 1
             else:
@@ -76,9 +79,9 @@ def consume_stream(api):
     streamer = tweepy.Stream(auth=api.auth, listener=stream_listener)
     connection_attempts = 0
     while True:
-        LOG.info("Streaming tweets from hashtag %r" % (os.environ['STREAM_HASHTAG']))
+        LOG.info("Streaming tweets from hashtag %r" % STREAM_HASHTAG)
         try:
-            streamer.filter(track=[os.environ['STREAM_HASHTAG']])
+            streamer.filter(track=[STREAM_HASHTAG])
         except KeyboardInterrupt:
             LOG.info('Disconnecting from Twitter API')
             streamer.disconnect()

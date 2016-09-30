@@ -11,7 +11,7 @@ import pprint
 
 def deploy(data):
     url = '%s/v2/apps' % (os.environ['MARATHON_URL'].rstrip('/'))
-    app_url = '%s/%s' % (url, data['id'])
+    app_url = '%s/%s?force=true' % (url, data['id'])
     auth = (os.environ['MARATHON_USER'], os.environ['MARATHON_PASSWORD'])
     r = requests.get(app_url, auth=auth)
     if r.status_code == 200:
@@ -30,13 +30,13 @@ def deploy_workers():
     data = {
         'id': '/summit/workers',
         'instances': 3,
-        'constraints': [["hostname", "UNIQUE"]],
+        'constraints': [["hostname", "GROUP_BY"]],
         'container': {
             'type': 'DOCKER',
             'volumes': [],
             'docker': {
                 'forcePullImage': True,
-                'image': 'brouberol/remotec',
+                'image': 'bewiwi/remotec',
                 'network': 'BRIDGE',
                 'portMappings': [],
                 'priviledged': False
@@ -65,23 +65,62 @@ def deploy_workers():
     deploy(data)
 
 
-def deploy_api():
+def deploy_beat():
     data = {
-        'id': '/summit/api',
-        'instances': 3,
-        'constraints': [["hostname", "UNIQUE"]],
+        'id': '/summit/beat',
+        'instances': 1,
+        'constraints': [["hostname", "GROUP_BY"]],
         'container': {
             'type': 'DOCKER',
             'volumes': [],
             'docker': {
                 'forcePullImage': True,
-                'image': 'brouberol/remotec',
+                'image': 'bewiwi/remotec',
+                'network': 'BRIDGE',
+                'portMappings': [],
+                'priviledged': False
+            }
+        },
+        'cpus': 0.1,
+        'mem': 128,
+        'disk': 0,
+        'env': {
+            'CELERY_BROKER_URL': os.environ['CELERY_BROKER_URL'],
+            'CELERY_RESULT_BACKEND': os.environ['CELERY_RESULT_BACKEND'],
+            'LOAD_BALANCER': os.environ['LOAD_BALANCER'],
+            'MARATHON_URL': os.environ['MARATHON_URL'],
+            'MARATHON_USER': os.environ['MARATHON_USER'],
+            'MARATHON_PASSWORD': os.environ['MARATHON_PASSWORD'],
+            'API_URL': os.environ['API_URL'],
+            'LOGS_TOKEN': os.environ['LOGS_TOKEN'],
+            'ENTRYPOINT_CMD': 'celery_beat',
+        },
+        'healthChecks': [],
+        'labels': {
+            'USER_LOGS_TOKEN': os.environ['LOGS_TOKEN'],
+        },
+        'maxLaunchDelaySeconds': 600
+    }
+    deploy(data)
+
+
+def deploy_api():
+    data = {
+        'id': '/summit/api',
+        'instances': 3,
+        'constraints': [["hostname", "GROUP_BY"]],
+        'container': {
+            'type': 'DOCKER',
+            'volumes': [],
+            'docker': {
+                'forcePullImage': True,
+                'image': 'bewiwi/remotec',
                 'network': 'BRIDGE',
                 'portMappings': [
                     {
-                        'containerPort': os.environ['API_PORT'],
+                        'containerPort': os.environ.get('API_PORT', 5000),
                         'servicePort': 0,
-                        'protocol': 'http',
+                        'protocol': 'tcp',
                     }
                 ],
                 'priviledged': False
@@ -131,7 +170,7 @@ def deploy_consumer():
             'volumes': [],
             'docker': {
                 'forcePullImage': True,
-                'image': 'brouberol/remotec',
+                'image': 'bewiwi/remotec',
                 'network': 'BRIDGE',
                 'portMappings': [],
                 'priviledged': False
@@ -152,6 +191,7 @@ def deploy_consumer():
             'TWITTER_KEY': os.environ['TWITTER_KEY'],
             'TWITTER_SECRET': os.environ['TWITTER_SECRET'],
             'STREAM_HASHTAG': os.environ['STREAM_HASHTAG'],
+            'ENTRYPOINT_CMD': 'consumer',
         },
         'healthChecks': [],
         'labels': {
@@ -184,7 +224,6 @@ def deploy_broker():
                 'portMappings': [
                     {
                         'containerPort': 6379,
-                        'servicePort': int(os.environ['REDIS_PORT']),
                         'protocol': 'tcp',
                     }
                 ],
@@ -209,7 +248,7 @@ def deploy_broker():
         ],
         'labels': {
             'HAPROXY_0_MODE': 'tcp',
-            'HAPROXY_0_BACKEND_NETWORK_ALLOWED_ACL': os.environ['REDIS_ACL'],
+            # 'HAPROXY_0_BACKEND_NETWORK_ALLOWED_ACL': os.environ['REDIS_ACL'],
             'USER_LOGS_TOKEN': os.environ['LOGS_TOKEN'],
         },
         'maxLaunchDelaySeconds': 600,
@@ -226,6 +265,14 @@ def main():
     elif app == 'api':
         deploy_api()
     elif app == 'broker':
+        deploy_broker()
+    elif app == 'beat':
+        deploy_beat()
+    elif app == 'all':
+        deploy_api()
+        deploy_consumer()
+        deploy_workers()
+        deploy_beat()
         deploy_broker()
     else:
         print("Unhandled app")
