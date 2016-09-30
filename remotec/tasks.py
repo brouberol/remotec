@@ -50,7 +50,7 @@ def make_app(username, instances):
         container=MarathonContainer(
             type='DOCKER',
             docker=MarathonDockerContainer(
-                image='nginx',
+                image=os.environ['DOCKER_IMAGE'],
                 network='HOST',
                 port_mappings=[
                     MarathonContainerPortMapping(container_port=80, service_port=0),
